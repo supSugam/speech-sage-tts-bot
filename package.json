@@ -1,0 +1,25 @@
+{
+  "name": "speech-sage-tts-bot",
+  "version": "1.0.0",
+  "description": " A telegram bot that will convert your text to voice of your choice. (Shush! Do not tell anything to ElevenL",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node index.js",
+    "start:dev": "npx nodemon"
+  },
+  "author": "Sugam Subedi, supSugam",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "nodemon": "^3.1.0",
+    "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
