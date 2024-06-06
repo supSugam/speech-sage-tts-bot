@@ -5,6 +5,7 @@ import { VOICE_OPTIONS_PATH } from './utils/constants';
 import { IVoice } from './interfaces/IVoice';
 import { getEmojiByVoice } from './utils/emoji';
 import { fetchVoice } from './services/fetchVoice';
+import { splitStringIntoChunks } from './utils/string';
 
 dotenv.config();
 
@@ -63,31 +64,52 @@ const handleTextToSpeechConversion = async (ctx: any, voice: IVoice) => {
   // This handler will be responsible for processing the text input
   bot.hears(/.*/, async (ctx) => {
     const text = ctx.message.text;
-    console.log('from', JSON.stringify(ctx.from, null, 2));
     const userName = ctx.from.first_name;
-    // Here you can use text-to-speech API to convert the text to speech using the selected voice
-    // For now, let's just echo back the text to the user
+    console.log('from', ctx.from);
+
+    console.log('text', text);
+
+    // Inform the user that text-to-speech conversion is initiated
     await ctx.reply(`Alright, let's start cooking up some audio for you! 🎧\n`);
-    try {
+
+    const chunks = splitStringIntoChunks(text, 500);
+    const chunksPercentages = chunks.reduce((acc, chunk, i) => {
+      const chunkPercentage = Math.min(
+        Math.round((chunk.length / text.length) * 100),
+        100
+      );
+      const cumulativePercentage =
+        i === chunks.length - 1
+          ? 100
+          : chunkPercentage + (acc.length > 0 ? acc[acc.length - 1] : 0);
+      acc.push(cumulativePercentage);
+      return acc;
+    }, [] as number[]);
+
+    const buffers = [];
+    for (let i = 0; i < chunks.length; i++) {
+      const IsFirstChunk = i === 0;
+      if (IsFirstChunk) await ctx.reply(`Processing the audio... ⏳`);
+      const IsLastChunk = i === chunks.length - 1;
       const buffer = await fetchVoice({
         voice_id: ctx.session.voice_id,
-        text,
+        text: chunks[i],
       });
-      await ctx.reply(`Please wait while we convert the text to speech... 🛠️`);
-      await ctx.replyWithVoice({
-        source: buffer,
-        filename: `${userName}_${voice?.name}_${Date.now()}.mp3`,
-      });
-      console.log(
-        'Text to speech conversion successful',
-        buffer,
-        text,
-        voiceId,
-        userName
+      buffers.push(buffer);
+      await ctx.reply(
+        `${
+          IsLastChunk
+            ? 'Processing Done! ✅ Sending the audio now...'
+            : `${chunksPercentages[i]}% Done. ♨️`
+        }`
       );
-    } catch (error) {
-      console.error('Error fetching voice:', JSON.stringify(error, null, 2));
     }
+
+    const mergedChunks = Buffer.concat(buffers);
+    await ctx.replyWithAudio({
+      source: mergedChunks,
+      filename: `${userName}_${voice?.name}_${Date.now()}.mp3`,
+    });
 
     await ctx.reply(
       `If you encounter any problem, Do not hesitate to DM me at @sugarnotsugam 🤗`

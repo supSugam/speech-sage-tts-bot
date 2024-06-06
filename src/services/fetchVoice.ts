@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 export const fetchVoice = async ({
   voice_id,
   text,
@@ -7,7 +9,7 @@ export const fetchVoice = async ({
 }) => {
   try {
     const response = await fetch(
-      `${process.env.TTS_API_URL!}/${voice_id}/stream?`,
+      `${process.env.TTS_API_URL!}/${voice_id}/stream`,
       {
         method: 'POST',
         headers: {
@@ -22,11 +24,20 @@ export const fetchVoice = async ({
         }),
       }
     );
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.log('err', err);
+      throw new Error(
+        `Failed to fetch voice: ${response.status} ${response.statusText}`
+      );
+    }
+
     const data = await response.arrayBuffer();
     const buffer = Buffer.from(data);
     return buffer;
   } catch (error) {
-    console.error('Error fetching voice:', JSON.stringify(error, null, 2));
+    console.error('Error fetching voice:', error);
     throw new Error('Error fetching voice');
   }
 };
