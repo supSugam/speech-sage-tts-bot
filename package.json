@@ -1,7 +1,7 @@
 {
   "name": "speech-sage-tts-bot",
   "version": "1.0.0",
-  "description": "A telegram bot that will convert your text to voice of your choice. (Shush! Do not tell anything to Some Lab, Its just a fun project anyway..)",
+  "description": "A telegram bot that will convert your text to voice of your choice. (relies on ElevenLabs, Limited)",
   "main": "index.js",
   "type": "commonjs",
   "directories": {
